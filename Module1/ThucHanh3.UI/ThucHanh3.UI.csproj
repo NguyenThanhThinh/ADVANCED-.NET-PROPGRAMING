@@ -46,14 +46,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="frmAirport.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="frmAirport.designer.cs">
+      <DependentUpon>frmAirport.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain.designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="frmAirport.resx">
+      <DependentUpon>frmAirport.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMain.resx">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -80,6 +92,10 @@
     <ProjectReference Include="..\ThucHanh3.BUS\ThucHanh3.BUS.csproj">
       <Project>{c4d21f01-02a0-4c32-a313-63ffde212067}</Project>
       <Name>ThucHanh3.BUS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThucHanh3.DAL\ThucHanh3.DAL.csproj">
+      <Project>{D74F0D3C-C6D5-4DC1-85DD-8B5619372174}</Project>
+      <Name>ThucHanh3.DAL</Name>
     </ProjectReference>
     <ProjectReference Include="..\ThucHanh3.DTO\ThucHanh3.DTO.csproj">
       <Project>{6763c319-4a52-40aa-a7d3-86ad8c073810}</Project>

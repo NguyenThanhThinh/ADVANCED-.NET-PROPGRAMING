@@ -1,129 +1,336 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ThucHanh3.DAL
 {
-    public class Dataprovider:IDataprovider
+    public class DBConnection
     {
+        private string _server = @"P18M13\SQLExpress";
+        //private string _server = "localhost";
+        private string _database = "atmsproject";
+        private string _user = "sa";
+        private string _password = "thanhthinhgh1";
+
         private SqlConnection _connection;
-        private string _database= "atmsproject";
-        private string _password;
-        private string _server= @".\SQLExpress";
-        private string _user;
-        private static bool blnSecurity=false;
-    
-        public void Close()
+
+        private string GetTrustedConnectionString()
         {
-            _connection.Close();
+            return String.Format("Data source = {0}; Initial Catalog = {1}; Integrated Security = True", _server, _database);
         }
 
-        public void ConnectionDb()
+        private string GetConnectionString()
         {
-            string connection;
-            if (blnSecurity == false)
+            return String.Format("Data Source={0};Initial Catalog = {1}; UID = {2}; PWD = {3}", _server, _database, _user, _password);
+        }
+
+
+        public DBConnection()
+        {
+            _connection = new SqlConnection(GetConnectionString());
+        }
+
+        public DBConnection(bool trustedConnection)
+        {
+            if (trustedConnection)
             {
-                connection = "Server" + _server + ";Database=" + _database + ";Initial Catalog =" + blnSecurity.ToString() + ";UID=" + _user + ";PWD=" + _password;
-                _connection = new SqlConnection(connection);
-                _connection.Open();
+                _connection = new SqlConnection(GetTrustedConnectionString());
             }
             else
             {
-                connection = "Server" + _server + ";Database=" + _database + ";Initial Catalog =" + blnSecurity.ToString();
-                _connection = new SqlConnection(connection);
-                _connection.Open();
+                _connection = new SqlConnection(GetConnectionString());
             }
-         
-
         }
 
-        public void DBConnection()
+        public void ConnectDB()
         {
-            throw new NotImplementedException();
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                try
+                {
+                    _connection.Open();
+                }
+                catch (SqlException ex)
+                {
+                    MessageBox.Show("Connection error: " + ex.Message);
+                }
+            }
         }
 
-        public void DBConnection(bool statusConnection)
+        public void Close()
         {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            _connection.Dispose();
-        }
-
-        public SqlDataReader ExecuteReader(string sql)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SqlDataReader ExecuteReader(SqlCommand sqlCommand)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public SqlDataReader ExecuteReader(string sql, SqlParameter[] parm)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int ExecuteScalar(SqlCommand sqlCommand)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int ExecuteScalar(string sql, SqlParameter[] parm)
-        {
-            throw new NotImplementedException();
+            if (_connection.State != System.Data.ConnectionState.Closed)
+            {
+                try
+                {
+                    _connection.Close();
+                }
+                catch (SqlException ex)
+                {
+                    MessageBox.Show("Cannot close the database connection properly. " + ex.Message);
+                }
+            }
         }
 
         public SqlConnection GetConnection()
         {
-            throw new NotImplementedException();
+            return _connection;
         }
 
-        public string GetConnectionString()
+        public SqlDataReader ExecuteReader(SqlCommand command)
         {
-            throw new NotImplementedException();
+            SqlDataReader dr;
+
+            command.Connection = _connection;
+            dr = command.ExecuteReader();
+
+            return dr;
         }
 
-        public DataSet GetDatasetResult(string sql)
+        public SqlDataReader ExecuteReader(string sql)
         {
-            throw new NotImplementedException();
+            ConnectDB();
+            SqlDataReader dr;
+            SqlCommand command = new SqlCommand(sql, _connection);
+            dr = command.ExecuteReader();
+            return dr;
         }
 
-        public DataSet GetDatasetResult(SqlCommand sqlCommand)
+        public SqlDataReader ExecuteReader(string sql, ParameterPair[] param)
         {
-            throw new NotImplementedException();
+            ConnectDB();
+            SqlDataReader dr;
+            SqlCommand command = new SqlCommand(sql, _connection);
+            SqlParameter p;
+            for (int i = 0; i < param.Length; i++)
+            {
+                ParameterPair pp = param[i];
+                p = new SqlParameter(pp.ParameterName, pp.Value);
+                command.Parameters.Add(p);
+            }
+
+            dr = command.ExecuteReader();
+            return dr;
         }
 
-        public DataSet GetDatasetResult(string sql, string tableName)
+        public int ExecuteScalar(SqlCommand command)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            ConnectDB();
+            try
+            {
+                command.Connection = _connection;
+                result = (int)command.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
+
+            return result;
         }
 
-        public DataSet GetDatasetResult(string sql, SqlParameter[] parm)
+        public int ExecuteScalar(string sql, ParameterPair[] param)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            ConnectDB();
+            try
+            {
+                ConnectDB();
+                SqlCommand command = new SqlCommand(sql, _connection);
+                SqlParameter p;
+                for (int i = 0; i < param.Length; i++)
+                {
+                    ParameterPair pp = param[i];
+                    p = new SqlParameter(pp.ParameterName, pp.Value);
+                    command.Parameters.Add(p);
+                }
+
+                result = (int)command.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return 0;
+            }
+
+            return result;
         }
 
-        public DataSet GetDatasetResult(SqlCommand sqlCommand, string dataTable)
+        public int ExecuteNonQuery(string sql)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            ConnectDB();
+            try
+            {
+
+                SqlCommand command = new SqlCommand(sql, _connection);
+                result = (int)command.ExecuteNonQuery();
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return 0;
+            }
+            return result;
         }
 
-        public DataSet GetDatasetResult(string sql, SqlParameter[] parm, string tableName)
+        public int ExecuteNonQuery(SqlCommand command)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            ConnectDB();
+
+            try
+            {
+                command.Connection = _connection;
+
+                result = (int)command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return 0;
+            }
+
+            return result;
         }
 
-        public string GetTrustedConnectionString()
+        public int ExecuteNonQuery(SqlCommand command, ParameterPair[] param)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            ConnectDB();
+            try
+            {
+                SqlParameter p;
+                for (int i = 0; i < param.Length; i++)
+                {
+                    ParameterPair pp = param[i];
+                    p = new SqlParameter(pp.ParameterName, pp.Value);
+                    command.Parameters.Add(p);
+                }
+
+                result = (int)command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return 0;
+            }
+
+            return result;
+        }
+
+        public int ExecuteNonQuery(string sql, ParameterPair[] param)
+        {
+            int result = 0;
+            ConnectDB();
+
+            try
+            {
+
+                SqlCommand command = new SqlCommand(sql, _connection);
+
+                SqlParameter p;
+                for (int i = 0; i < param.Length; i++)
+                {
+                    ParameterPair pp = param[i];
+                    p = new SqlParameter(pp.ParameterName, pp.Value);
+                    command.Parameters.Add(p);
+                }
+
+                result = (int)command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("ExecuteNonQuery() exception: " + ex.Message);
+                return 0;
+            }
+
+            return result;
+        }
+
+        public DataSet GetDatasetResut(SqlCommand command)
+        {
+            ConnectDB();
+            DataSet ds = new DataSet();
+            command.Connection = _connection;
+            SqlDataAdapter da = new SqlDataAdapter(command);
+            da.Fill(ds);
+
+            return ds;
+        }
+
+        public DataSet GetDatasetResut(SqlCommand command, string tableName)
+        {
+            ConnectDB();
+            DataSet ds = new DataSet();
+            command.Connection = _connection;
+            SqlDataAdapter da = new SqlDataAdapter(command);
+            da.Fill(ds, tableName);
+
+            return ds;
+        }
+
+        public DataSet GetDatasetResut(string sql)
+        {
+            ConnectDB();
+            DataSet ds = new DataSet();
+
+            SqlDataAdapter da = new SqlDataAdapter(sql, _connection);
+            da.Fill(ds);
+
+            return ds;
+        }
+
+        public DataSet GetDatasetResut(string sql, string tableName)
+        {
+            ConnectDB();
+            DataSet ds = new DataSet();
+
+            SqlDataAdapter da = new SqlDataAdapter(sql, _connection);
+            da.Fill(ds, tableName);
+
+            return ds;
+        }
+
+        public DataSet GetDatasetResut(string sql, ParameterPair[] param)
+        {
+            DataSet ds = new DataSet();
+            ConnectDB();
+            SqlCommand command = new SqlCommand(sql, _connection);
+            SqlParameter p;
+            for (int i = 0; i < param.Length; i++)
+            {
+                ParameterPair pp = param[i];
+                p = new SqlParameter(pp.ParameterName, pp.Value);
+                command.Parameters.Add(p);
+            }
+
+            SqlDataAdapter da = new SqlDataAdapter(command);
+            da.Fill(ds);
+
+            return ds;
+        }
+
+        public DataSet GetDatasetResut(string sql, ParameterPair[] param, string tableName)
+        {
+            DataSet ds = new DataSet();
+            ConnectDB();
+            SqlCommand command = new SqlCommand(sql, _connection);
+            SqlParameter p;
+            for (int i = 0; i < param.Length; i++)
+            {
+                ParameterPair pp = param[i];
+                p = new SqlParameter(pp.ParameterName, pp.Value);
+                command.Parameters.Add(p);
+            }
+
+            SqlDataAdapter da = new SqlDataAdapter(command);
+            da.Fill(ds, tableName);
+
+            return ds;
         }
     }
 }
